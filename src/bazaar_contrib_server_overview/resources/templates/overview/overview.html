@@ -1,0 +1,5 @@
+{% extends "server/base.html" %}
+{% block title %}{{ t.text("overview.title") }}{% endblock %}
+{% block body %}
+<section class="content">{% include "overview/board.html" %}</section>
+{% endblock %}

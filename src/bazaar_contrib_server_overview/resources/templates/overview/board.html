@@ -1,0 +1,17 @@
+{% import "server/icons.html" as icons %}
+<div class="board" id="board">
+  {% for item in items %}
+  <article class="card tile">
+    <header class="card-hd">
+      <h3>{{ t.text(item.title) }}</h3>
+      <span class="more">
+        {% if not loop.first %}<button class="btn ghost sm" type="button" hx-post="move" hx-vals='{{ {"key": item.key, "toward": "earlier"} | tojson }}' hx-target="#board" hx-swap="outerHTML" aria-label="{{ t.text('overview.earlier') }}">{{ icons.icon("chevron-left") }}</button>{% endif %}
+        {% if not loop.last %}<button class="btn ghost sm" type="button" hx-post="move" hx-vals='{{ {"key": item.key, "toward": "later"} | tojson }}' hx-target="#board" hx-swap="outerHTML" aria-label="{{ t.text('overview.later') }}">{{ icons.icon("chevron-right") }}</button>{% endif %}
+      </span>
+    </header>
+    <iframe src="{{ item.src }}" data-fit title="{{ t.text(item.title) }}"></iframe>
+  </article>
+  {% else %}
+  <p class="empty">{{ t.text("overview.empty") }}</p>
+  {% endfor %}
+</div>

@@ -32,7 +32,12 @@ async def _overview(ctx: Context) -> AsyncIterator[None]:
         )
         board = Board(await server.pages("overview", __name__), ctx.accept(SERVER_DB))
         async with (
-            server.module("overview", ui=board.app, locales=resources / "locales"),
+            server.module(
+                "overview",
+                ui=board.app,
+                static=resources / "static",
+                locales=resources / "locales",
+            ),
             server.sidebar(
                 SidebarItem(
                     text="overview.title",

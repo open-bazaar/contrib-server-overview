@@ -46,7 +46,7 @@ async def signed_in() -> AsyncIterator[tuple[str, httpx.AsyncClient, Overview]]:
         async with (
             board.register(OverviewItem(key="first", title="first", src="/ui/first")),
             board.register(
-                OverviewItem(key="second", title="second", src="/ui/second")
+                OverviewItem(key="second", title="second", src="/ui/second", columns=2)
             ),
             board.register(
                 OverviewItem(
@@ -138,3 +138,18 @@ async def test_content_away_for_a_while_comes_back_to_its_place():
         async with board.register(third):
             page = await session.get(f"{url}/ui/overview/")
         assert page.text.index("/ui/third") < page.text.index("/ui/first")
+
+
+async def test_the_overview_greets_the_account_and_gives_content_its_columns():
+    async with signed_in() as (url, session, _):
+        page = await session.get(f"{url}/ui/overview/")
+        second = re.search(
+            r'<article class="([^"]*)">(?:(?!</article>).)*/ui/second',
+            page.text,
+            re.DOTALL,
+        )
+        assert second is not None
+        assert "c2" in second.group(1).split()
+        greeting = re.search(r'<h2 class="greeting".*?</h2>', page.text, re.DOTALL)
+        assert greeting is not None
+        assert "admin" in greeting.group(0)

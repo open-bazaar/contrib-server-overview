@@ -22,6 +22,8 @@ class OverviewItem(BaseModel):
     title: str
     src: str
     permission: str | None = None
+    # how many of the overview's three columns it takes; a phone has one
+    columns: int = Field(default=1, ge=1, le=3)
 
 
 class Overview(Protocol):

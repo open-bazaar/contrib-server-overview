@@ -1,5 +1,11 @@
 {% extends "server/base.html" %}
 {% block title %}{{ t.text("overview.title") }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ asset('overview.css') }}">{% endblock %}
+{% block actions %}{% if items | length > 1 %}<button class="btn ghost sm" type="button" x-data="{ on: false }" :aria-pressed="on" @click="on = !on; document.body.classList.toggle('arranging', on)"><span x-show="!on">{{ t.text('overview.arrange') }}</span><span x-show="on" x-cloak>{{ t.text('overview.arranged') }}</span></button>{% endif %}{% endblock %}
 {% block body %}
-<section class="content">{% include "overview/board.html" %}</section>
+<section class="content">
+  {# a greeting by the hour where the browser is, and to whom #}
+  <h2 class="greeting" data-morning="{{ t.text('overview.morning') }}" data-noon="{{ t.text('overview.noon') }}" data-afternoon="{{ t.text('overview.afternoon') }}" data-evening="{{ t.text('overview.evening') }}" x-data="{ hour: new Date().getHours() }"><span x-text="$el.parentElement.dataset[hour < 5 || hour >= 18 ? 'evening' : hour < 11 ? 'morning' : hour < 13 ? 'noon' : 'afternoon']"></span><em>{{ account.name }}</em></h2>
+  {% include "overview/board.html" %}
+</section>
 {% endblock %}

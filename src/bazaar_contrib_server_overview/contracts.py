@@ -14,7 +14,8 @@ NAME = r"^[a-z][a-z0-9-]*$"
 
 class OverviewItem(BaseModel):
     """Content of the overview, loaded in an iframe, for the accounts holding
-    its permission point."""
+    its permission point; an account that never arranged the overview sees
+    the content by its order, and as it was registered where that ties."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -22,8 +23,11 @@ class OverviewItem(BaseModel):
     title: str
     src: str
     permission: str | None = None
+    order: int = 0
     # how many of the overview's three columns it takes; a phone has one
     columns: int = Field(default=1, ge=1, le=3)
+    # how many rows it takes, those beside it stacking down its side
+    rows: int = Field(default=1, ge=1, le=2)
 
 
 class Overview(Protocol):

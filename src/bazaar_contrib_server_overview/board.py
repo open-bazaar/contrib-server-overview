@@ -72,14 +72,18 @@ class Board:
         self, account: Account, positions: dict[str, int]
     ) -> list[OverviewItem]:
         """The content the account may see, in the order it chose; what it
-        never placed follows, in the order it was registered."""
+        never placed follows, by its order and then as it was registered."""
         return sorted(
             (
                 item
                 for item in self._items
                 if item.permission is None or account.allows(item.permission)
             ),
-            key=lambda item: (item.key not in positions, positions.get(item.key, 0)),
+            key=lambda item: (
+                item.key not in positions,
+                positions.get(item.key, 0),
+                item.order,
+            ),
         )
 
     async def _page(self, request: Request) -> Response:

@@ -1,13 +1,15 @@
 /* The overview's greeting, and what the modules put on it in three columns,
-   each taking as many as it asked for; on a phone, one above another. */
+   each taking as many columns and rows as it asked for, what follows a tall
+   one stacking down its side; on a phone, one above another. */
 
 [x-cloak] { display: none !important; }
 .greeting { margin: 4px 0 20px; font-family: var(--font-display); font-size: 26px; font-weight: 650; letter-spacing: -.01em; }
 .greeting em { font-style: italic; color: var(--saffron); }
-.board { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 20px; }
+.board { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 16px 20px; }
 .slot { position: relative; min-width: 0; }
 .slot.c2 { grid-column: span 2; }
 .slot.c3 { grid-column: 1 / -1; }
+.slot.r2 { grid-row: span 2; }
 .slot iframe { display: block; width: 100%; border: 0; }
 .slot .move { position: absolute; z-index: 1; top: 0; right: 0; display: none; gap: 4px; }
 /* the order changes while it is being arranged, nothing in the way otherwise */
@@ -15,4 +17,4 @@
 .arranging .slot iframe { outline: 1px dashed var(--line-strong); outline-offset: 4px; border-radius: var(--r-lg); }
 :root[data-layout="narrow"] .greeting { font-size: 22px; margin-bottom: 14px; }
 :root[data-layout="narrow"] .board { grid-template-columns: minmax(0, 1fr); }
-:root[data-layout="narrow"] .board .slot { grid-column: auto; }
+:root[data-layout="narrow"] .board .slot { grid-column: auto; grid-row: auto; }

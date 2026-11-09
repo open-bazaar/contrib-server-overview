@@ -1,8 +1,8 @@
 {% import "server/icons.html" as icons %}
-{# each module draws its own content, its title and frame included; moving it shows where the pointer is #}
+{# each module draws its own content, its title and frame included, over the columns and rows it takes; moving it shows where the pointer is #}
 <div class="board" id="board">
   {% for item in items %}
-  <article class="slot c{{ item.columns }}">
+  <article class="slot c{{ item.columns }} r{{ item.rows }}">
     <span class="move">
       {% if not loop.first %}<button class="btn sm" type="button" hx-post="move" hx-vals='{{ {"key": item.key, "toward": "earlier"} | tojson }}' hx-target="#board" hx-swap="outerHTML" aria-label="{{ t.text('overview.earlier') }}">{{ icons.icon("chevron-left") }}</button>{% endif %}
       {% if not loop.last %}<button class="btn sm" type="button" hx-post="move" hx-vals='{{ {"key": item.key, "toward": "later"} | tojson }}' hx-target="#board" hx-swap="outerHTML" aria-label="{{ t.text('overview.later') }}">{{ icons.icon("chevron-right") }}</button>{% endif %}

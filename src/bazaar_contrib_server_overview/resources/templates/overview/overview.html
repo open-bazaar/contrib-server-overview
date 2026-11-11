@@ -1,7 +1,7 @@
 {% extends "server/base.html" %}
 {% block title %}{{ t.text("overview.title") }}{% endblock %}
 {% block head %}<link rel="stylesheet" href="{{ asset('overview.css') }}"><script src="{{ asset('overview.js') }}"></script>{% endblock %}
-{% block actions %}{% if items | length > 1 %}<span class="arrange" x-data="{ on: false }" x-effect="document.body.classList.toggle('arranging', on)"><span class="hint" x-show="on" x-cloak>{{ t.text('overview.arrange.hint') }}</span><button class="btn ghost sm icon" type="button" x-show="!on" @click="on = true" title="{{ t.text('overview.arrange') }}" aria-label="{{ t.text('overview.arrange') }}">{% include "overview/pencil.svg" %}</button><button class="btn primary sm" type="button" x-show="on" x-cloak @click="on = false">{{ t.text('overview.arranged') }}</button></span>{% endif %}{% endblock %}
+{% block actions %}{% if items | length > 1 %}<span class="arrange" x-data="{ on: false }" x-effect="document.body.classList.toggle('arranging', on)"><span class="hint" x-show="on" x-cloak>{{ t.text('overview.arrange.hint') }}</span><button class="btn ghost sm icon" type="button" x-show="!on" @click="on = true" data-tip="{{ t.text('overview.arrange') }}" aria-label="{{ t.text('overview.arrange') }}">{% include "overview/pencil.svg" %}</button><button class="btn primary sm" type="button" x-show="on" x-cloak @click="on = false">{{ t.text('overview.arranged') }}</button></span>{% endif %}{% endblock %}
 {% block body %}
 <section class="content">
   {# a greeting by the hour where the browser is, and to whom #}

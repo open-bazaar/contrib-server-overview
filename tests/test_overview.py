@@ -134,33 +134,34 @@ async def test_the_overview_keeps_the_order_each_account_gives_it():
         assert page.text.index("/ui/first") < page.text.index("/ui/second")
         # the admin may see everything, the content behind a point included
         assert "/ui/kept" in page.text
-        moved = await session.post(
-            f"{url}/ui/overview/move", data={"key": "first", "toward": "later"}
+        arranged = await session.post(
+            f"{url}/ui/overview/arrange", data={"order": "second,first,kept"}
         )
-        assert moved.status_code == 200
+        assert arranged.status_code == 204
         again = await session.get(f"{url}/ui/overview/")
         assert again.text.index("/ui/second") < again.text.index("/ui/first")
-        missing = await session.post(
-            f"{url}/ui/overview/move", data={"key": "absent", "toward": "later"}
-        )
-        assert missing.status_code == 404
+        # an order that is not of what is shown is refused
+        for order in ("first,absent,kept", "second,first"):
+            refused = await session.post(
+                f"{url}/ui/overview/arrange", data={"order": order}
+            )
+            assert refused.status_code == 422
 
 
 async def test_content_away_for_a_while_comes_back_to_its_place():
     async with signed_in() as (url, session, board):
 
-        async def move(key: str, toward: str) -> None:
-            moved = await session.post(
-                f"{url}/ui/overview/move", data={"key": key, "toward": toward}
+        async def arrange(*keys: str) -> None:
+            arranged = await session.post(
+                f"{url}/ui/overview/arrange", data={"order": ",".join(keys)}
             )
-            assert moved.status_code == 200
+            assert arranged.status_code == 204
 
         third = OverviewItem(key="third", title="third", src="/ui/third")
         async with board.register(third):
-            for _ in range(3):
-                await move("third", "earlier")
-        # with the contrib bringing it stopped, the rest is moved around
-        await move("kept", "earlier")
+            await arrange("third", "first", "second", "kept")
+        # with the contrib bringing it stopped, the rest is put in another order
+        await arrange("kept", "first", "second")
         async with board.register(third):
             page = await session.get(f"{url}/ui/overview/")
         assert page.text.index("/ui/third") < page.text.index("/ui/first")
@@ -170,7 +171,7 @@ async def test_the_overview_greets_the_account_and_gives_content_its_columns():
     async with signed_in() as (url, session, _):
         page = await session.get(f"{url}/ui/overview/")
         second = re.search(
-            r'<article class="([^"]*)">(?:(?!</article>).)*/ui/second',
+            r'<article class="([^"]*)"[^>]*>(?:(?!</article>).)*/ui/second',
             page.text,
             re.DOTALL,
         )
@@ -271,5 +272,81 @@ async def test_the_overview_lays_content_out_by_its_order_columns_and_rows():
                 assert above and below
                 assert above["x"] == below["x"]
                 assert above["y"] + above["height"] <= below["y"]
+        finally:
+            await browser.close()
+
+
+async def test_a_card_dragged_while_arranged_takes_its_new_place():
+    items = tuple(
+        OverviewItem(key=key, title=key, src=f"/ui/goods/{key}?height=200")
+        for key in ("first", "second", "third")
+    )
+    async with signed_in(items) as (url, session, _), async_playwright() as driver:
+        browser = await driver.chromium.launch()
+        try:
+            context = await browser.new_context(
+                locale="zh-CN", viewport={"width": 1440, "height": 900}
+            )
+            await context.add_cookies(
+                [
+                    {"name": cookie.name, "value": cookie.value or "", "url": url}
+                    for cookie in session.cookies.jar
+                ]
+            )
+            page = await context.new_page()
+            await page.goto(f"{url}/overview")
+            board = page.frame_locator("iframe.frame")
+            await fitted(page, board, "every")
+            overview = next(one for one in page.frames if "/ui/overview/" in one.url)
+            await overview.evaluate(
+                "document.querySelectorAll('.slot iframe')"
+                ".forEach((frame) => (frame.contentWindow.kept = true))"
+            )
+            await board.get_by_role("button", name="自定义").click()
+            # the third card taken by the mouse and let go over the first
+            taken = await slot(board, "third").bounding_box()
+            onto = await slot(board, "first").bounding_box()
+            assert taken and onto
+            await page.mouse.move(
+                taken["x"] + taken["width"] / 2, taken["y"] + taken["height"] / 2
+            )
+            await page.mouse.down()
+            for step in range(1, 11):
+                await page.mouse.move(
+                    taken["x"] + (onto["x"] + 8 - taken["x"]) * step / 10,
+                    taken["y"] + (onto["y"] + 8 - taken["y"]) * step / 10,
+                )
+            async with page.expect_response(
+                lambda answer: answer.url.endswith("/ui/overview/arrange")
+            ) as arranged:
+                await page.mouse.up()
+            assert (await arranged.value).status == 204
+            # then the first moved a place on by its grip's arrow key, from
+            # where the cards show now
+            await slot(board, "first").locator(".grip").focus()
+            async with page.expect_response(
+                lambda answer: answer.url.endswith("/ui/overview/arrange")
+            ) as arranged:
+                await page.keyboard.press("ArrowRight")
+            assert (await arranged.value).status == 204
+            await board.get_by_role("button", name="完成").click()
+            # the cards made room without loading their pages again
+            assert await overview.evaluate(
+                "[...document.querySelectorAll('.slot iframe')]"
+                ".every((frame) => frame.contentWindow.kept === true)"
+            )
+            third, second, first = [
+                await slot(board, key).bounding_box()
+                for key in ("third", "second", "first")
+            ]
+            assert third and second and first
+            assert third["x"] < second["x"] < first["x"]
+            await page.reload()
+            board = page.frame_locator("iframe.frame")
+            await fitted(page, board, "every")
+            keys = await board.locator("article.slot").evaluate_all(
+                "(slots) => slots.map((one) => one.dataset.key)"
+            )
+            assert keys.index("third") < keys.index("second") < keys.index("first")
         finally:
             await browser.close()

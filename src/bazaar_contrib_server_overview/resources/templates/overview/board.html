@@ -1,15 +1,12 @@
-{% import "server/icons.html" as icons %}
-{# each module draws its own content, its title and frame included, over the columns and rows it takes; moving it shows where the pointer is #}
+{# each module draws its own content, its title and frame included, over the columns and rows it takes; arranged, a card goes where it is dragged, the frames left as they are #}
 <div class="board" id="board">
   {% for item in items %}
-  <article class="slot c{{ item.columns }} r{{ item.rows }}">
-    <span class="move">
-      {% if not loop.first %}<button class="btn sm" type="button" hx-post="move" hx-vals='{{ {"key": item.key, "toward": "earlier"} | tojson }}' hx-target="#board" hx-swap="outerHTML" aria-label="{{ t.text('overview.earlier') }}">{{ icons.icon("chevron-left") }}</button>{% endif %}
-      {% if not loop.last %}<button class="btn sm" type="button" hx-post="move" hx-vals='{{ {"key": item.key, "toward": "later"} | tojson }}' hx-target="#board" hx-swap="outerHTML" aria-label="{{ t.text('overview.later') }}">{{ icons.icon("chevron-right") }}</button>{% endif %}
-    </span>
+  <article class="slot c{{ item.columns }} r{{ item.rows }}" data-key="{{ item.key }}">
+    <button class="grip" type="button" aria-label="{{ t.text('overview.arrange.move', {'name': t.text(item.title)}) }}">{% include "overview/grip-horizontal.svg" %}</button>
     <iframe src="{{ item.src }}" data-fit title="{{ t.text(item.title) }}"></iframe>
   </article>
   {% else %}
   <p class="empty">{{ t.text("overview.empty") }}</p>
   {% endfor %}
+  <form hx-post="arrange" hx-swap="none" hidden><input type="hidden" name="order"></form>
 </div>

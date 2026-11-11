@@ -11,10 +11,24 @@
 .slot.c3 { grid-column: 1 / -1; }
 .slot.r2 { grid-row: span 2; }
 .slot iframe { display: block; width: 100%; border: 0; }
-.slot .move { position: absolute; z-index: 1; top: 0; right: 0; display: none; gap: 4px; }
-/* the order changes while it is being arranged, nothing in the way otherwise */
-.arranging .slot .move { display: flex; }
-.arranging .slot iframe { outline: 1px dashed var(--line-strong); outline-offset: 4px; border-radius: var(--r-lg); }
+.arrange { display: flex; align-items: center; gap: 12px; }
+.arrange .hint { font-size: 12.5px; color: var(--faint); }
+.arrange .icon { width: 30px; padding: 0; justify-content: center; }
+.arrange .icon svg { width: 16px; height: 16px; }
+.slot .grip { display: none; }
+/* while it is arranged a card is taken anywhere, its page out of reach, a
+   finger taking its grip; nothing in the way otherwise */
+.arranging .slot { cursor: grab; }
+.arranging .slot::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-lg); background: color-mix(in srgb, var(--surface) 35%, transparent); outline: 1.5px dashed var(--line-strong); outline-offset: 4px; }
+.arranging .slot .grip { position: absolute; z-index: 2; top: -15px; left: 50%; transform: translateX(-50%); width: 40px; height: 22px; border-radius: 11px; display: grid; place-items: center; background: var(--raised); color: var(--text-2); border: 1px solid var(--line-strong); box-shadow: var(--shadow); touch-action: none; }
+.arranging .slot .grip { padding: 0; cursor: grab; }
+.arranging .slot .grip:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
+.arranging .slot .grip svg { width: 18px; height: 18px; }
+/* where the card taken will go, and the card following the pointer */
+.arranging .slot.hole { border-radius: var(--r-lg); background: var(--saffron-soft); outline: 1.5px dashed var(--saffron); outline-offset: 4px; }
+.arranging .slot.hole::after, .slot.hole .grip { display: none; }
+.arranging .slot.lifted { position: fixed; z-index: 5; cursor: grabbing; transform: rotate(-1.5deg) scale(1.02); box-shadow: 0 18px 40px rgba(0, 0, 0, .18), 0 4px 12px rgba(0, 0, 0, .1); border-radius: var(--r-lg); }
+.arranging .slot.lifted::after { outline-color: var(--saffron); background: transparent; }
 :root[data-layout="narrow"] .greeting { font-size: 22px; margin-bottom: 14px; }
 :root[data-layout="narrow"] .board { grid-template-columns: minmax(0, 1fr); }
 :root[data-layout="narrow"] .board .slot { grid-column: auto; grid-row: auto; }
